@@ -1,13 +1,8 @@
 /**
  * main.js — Kartu Siswa
- * Fetch data dari Google Apps Script dan render ke card.html
- *
- * GANTI nilai ENDPOINT di bawah dengan URL deploy Apps Script kamu.
- * Contoh: 'https://script.google.com/macros/s/AKfycbxXXXXXXXXX/exec'
  */
 const ENDPOINT = 'https://script.google.com/macros/s/AKfycbza_7KWD66iJZGIh6xBuzRaphKHDyMaZZ3Evo_F6fTgF8N13rjRyCGfKCuFFi4lUhW5cA/exec';
 
-/* ── Kompetensi yang ditampilkan ── */
 const KOMPETENSIS = [
   { key: 'kompetensi_kedisiplinan',  label: 'Kedisiplinan'  },
   { key: 'kompetensi_kepemimpinan', label: 'Kepemimpinan'  },
@@ -15,15 +10,14 @@ const KOMPETENSIS = [
   { key: 'kompetensi_publikasi',    label: 'Publikasi'      },
 ];
 
-/* ── Helpers ── */
 function el(id) { return document.getElementById(id); }
 
 function showError(title, msg) {
-  el('loading').style.display   = 'none';
-  el('card-view').style.display = 'none';
+  el('loading').style.display    = 'none';
+  el('card-view').style.display  = 'none';
   el('error-view').style.display = 'flex';
-  el('error-title').textContent = title || 'Terjadi Kesalahan';
-  el('error-msg').textContent   = msg   || '';
+  el('error-title').textContent  = title || 'Terjadi Kesalahan';
+  el('error-msg').textContent    = msg   || '';
 }
 
 function showCard() {
@@ -32,17 +26,13 @@ function showCard() {
   el('card-view').style.display  = 'block';
 }
 
-/* ── Render competency bars ── */
 function renderKompetensi(data) {
   const list = el('competency-list');
   list.innerHTML = '';
-
   KOMPETENSIS.forEach(({ key, label }) => {
     const raw = data[key];
-    // Nilai bisa 0–100 atau kosong
     const val = raw !== undefined && raw !== '' ? Number(raw) : null;
     const pct = val !== null ? Math.min(100, Math.max(0, val)) : 0;
-
     const item = document.createElement('div');
     item.className = 'comp-item';
     item.innerHTML = `
@@ -54,8 +44,6 @@ function renderKompetensi(data) {
     `;
     list.appendChild(item);
   });
-
-  // Animate bars after paint
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       list.querySelectorAll('.comp-bar').forEach(bar => {
@@ -65,47 +53,46 @@ function renderKompetensi(data) {
   });
 }
 
-/* ── Main load ── */
 async function loadCard() {
   const params = new URLSearchParams(location.search);
   const id = params.get('id');
 
   if (!id) {
-    showError('ID Tidak Ditemukan', 'URL tidak mengandung parameter id. Kembali ke scanner dan coba lagi.');
+    showError('ID Tidak Ditemukan', 'URL tidak mengandung parameter id.');
     return;
   }
 
   try {
     const url = `${ENDPOINT}?id=${encodeURIComponent(id)}`;
-    const res = await fetch(url, { mode: 'cors' });
 
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status}`);
-    }
+    // KUNCI FIX: JANGAN set mode:'cors'
+    // Apps Script redirect ke URL eksekusi baru; mode:'cors' menyebabkan
+    // CORS preflight pada redirect gagal → fetch throw error diam-diam.
+    // Cukup fetch(url) atau { redirect:'follow' } — browser handle sendiri.
+    const res = await fetch(url, { redirect: 'follow' });
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
     const json = await res.json();
 
     if (!json.success) {
-      showError('Data Tidak Ditemukan', `Siswa dengan ID "${id}" tidak terdaftar dalam sistem.`);
+      showError('Data Tidak Ditemukan', `Siswa dengan ID "${id}" tidak terdaftar.`);
       return;
     }
 
     const d = json.data;
 
-    /* ── Set fields ── */
-    // Foto
     const photo = el('photo');
     if (d.foto_url && d.foto_url.trim()) {
       photo.src = d.foto_url.trim();
       photo.onerror = () => { photo.src = 'assets/default.svg'; };
     }
 
-    el('nama').textContent         = d.nama         || '—';
-    el('kelas').textContent        = d.kelas         || '—';
-    el('nomor-induk').textContent  = d.nomor_induk   || '—';
-    el('student-id-chip').textContent = d.student_id || id;
+    el('nama').textContent            = d.nama       || '—';
+    el('kelas').textContent           = d.kelas       || '—';
+    el('nomor-induk').textContent     = d.nomor_induk || '—';
+    el('student-id-chip').textContent = d.student_id  || id;
 
-    // Catatan
     const catatanEl = el('catatan');
     if (d.catatan && d.catatan.trim()) {
       catatanEl.textContent = d.catatan.trim();
@@ -115,19 +102,15 @@ async function loadCard() {
       catatanEl.classList.add('empty');
     }
 
-    // Kompetensi
     renderKompetensi(d);
-
-    // Update page title
     document.title = `Kartu Siswa — ${d.nama || id}`;
-
     showCard();
 
   } catch (err) {
     console.error(err);
     showError(
       'Gagal Mengambil Data',
-      'Periksa koneksi internet atau konfigurasi endpoint Apps Script. Detail: ' + err.message
+      'Kemungkinan masalah CORS atau deploy Apps Script. Coba deploy ulang Apps Script. Detail: ' + err.message
     );
   }
 }
