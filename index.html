@@ -6,158 +6,122 @@
   <title>Kartu Siswa — Scanner</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/css/style.css" />
   <style>
-    /* ---- page-specific ---- */
-    .hero {
-      text-align: center;
-      padding: 3rem 1.5rem 1.5rem;
+    /* ── Design tokens ── */
+    :root {
+      --accent:      #1a6b4a;
+      --ink:         #1a1f2e;
+      --muted:       #6b7280;
+      --bg:          #f5f6f8;
+      --surface:     #ffffff;
+      --border:      #e5e7eb;
+      --font-display:'Playfair Display', Georgia, serif;
+      --font-body:   'DM Sans', system-ui, sans-serif;
+      --radius:      10px;
+      --radius-lg:   18px;
+      --shadow-card: 0 4px 24px rgba(0,0,0,0.09), 0 1px 4px rgba(0,0,0,0.05);
     }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      font-family: var(--font-body);
+      font-size: 15px;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100dvh;
+      -webkit-font-smoothing: antialiased;
+    }
+    .container {
+      width: 100%;
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+
+    /* ── Hero ── */
+    .hero { text-align: center; padding: 3rem 1.5rem 1.5rem; }
     .hero-badge {
       display: inline-block;
-      font-family: var(--font-body);
-      font-size: 0.7rem;
-      font-weight: 600;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
+      font-size: 0.7rem; font-weight: 600;
+      letter-spacing: 0.18em; text-transform: uppercase;
       color: var(--accent);
       background: color-mix(in srgb, var(--accent) 12%, transparent);
       border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
-      border-radius: 100px;
-      padding: 0.3rem 0.9rem;
-      margin-bottom: 1rem;
+      border-radius: 100px; padding: 0.3rem 0.9rem; margin-bottom: 1rem;
     }
     .hero h1 {
       font-family: var(--font-display);
       font-size: clamp(1.8rem, 5vw, 2.8rem);
-      line-height: 1.15;
-      margin: 0 0 0.5rem;
-      color: var(--ink);
+      line-height: 1.15; margin: 0 0 0.5rem; color: var(--ink);
     }
-    .hero p {
-      color: var(--muted);
-      font-size: 0.92rem;
-      max-width: 320px;
-      margin: 0 auto;
-    }
+    .hero p { color: var(--muted); font-size: 0.92rem; max-width: 320px; margin: 0 auto; }
 
-    /* scanner container */
-    #scanner-wrap {
-      width: min(100%, 380px);
-      margin: 1.5rem auto;
-      border-radius: var(--radius-lg);
-      overflow: hidden;
-      background: #000;
-      position: relative;
-      box-shadow: var(--shadow-card);
-    }
-    #scanner-wrap::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      border: 3px solid var(--accent);
-      border-radius: var(--radius-lg);
-      pointer-events: none;
-      animation: pulse-border 2s ease-in-out infinite;
-    }
-    @keyframes pulse-border {
-      0%, 100% { opacity: 0.6; }
-      50% { opacity: 1; }
-    }
-    #reader {
-      width: 100%;
-      aspect-ratio: 1;
-    }
-    /* hide html5-qrcode default UI noise */
-    #reader img, #reader select { display: none !important; }
-
+    /* ── Scanner ── */
     .cam-status {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      font-size: 0.8rem;
-      color: var(--muted);
-      margin-bottom: 0.5rem;
+      display: flex; align-items: center; justify-content: center;
+      gap: 0.5rem; font-size: 0.8rem; color: var(--muted); margin-bottom: 0.5rem;
     }
     .dot {
-      width: 7px; height: 7px;
-      border-radius: 50%;
-      background: var(--accent);
-      animation: blink 1.4s ease-in-out infinite;
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--accent); animation: blink 1.4s ease-in-out infinite;
     }
     @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
 
-    /* divider */
-    .divider {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      width: min(100%, 380px);
-      margin: 0.75rem auto;
-      color: var(--muted);
-      font-size: 0.78rem;
+    #scanner-wrap {
+      width: min(100%, 380px); margin: 1.5rem auto;
+      border-radius: var(--radius-lg); overflow: hidden;
+      background: #000; position: relative; box-shadow: var(--shadow-card);
     }
-    .divider::before, .divider::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: var(--border);
+    #scanner-wrap::after {
+      content: ''; position: absolute; inset: 0;
+      border: 3px solid var(--accent); border-radius: var(--radius-lg);
+      pointer-events: none; animation: pulse-border 2s ease-in-out infinite;
     }
+    @keyframes pulse-border { 0%,100%{opacity:.6} 50%{opacity:1} }
+    #reader { width: 100%; aspect-ratio: 1; }
+    #reader img, #reader select { display: none !important; }
 
-    /* manual input */
-    .manual-form {
-      width: min(100%, 380px);
-      margin: 0 auto 2.5rem;
-      display: flex;
-      gap: 0.5rem;
-    }
-    .manual-form input {
-      flex: 1;
-      padding: 0.7rem 1rem;
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius);
-      font-family: var(--font-body);
-      font-size: 0.9rem;
-      background: var(--surface);
-      color: var(--ink);
-      transition: border-color 0.2s;
-      outline: none;
-    }
-    .manual-form input:focus {
-      border-color: var(--accent);
-    }
-    .manual-form input::placeholder { color: var(--muted); }
-    .btn {
-      padding: 0.7rem 1.2rem;
-      background: var(--accent);
-      color: #fff;
-      border: none;
-      border-radius: var(--radius);
-      font-family: var(--font-body);
-      font-size: 0.88rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: opacity 0.2s, transform 0.1s;
-    }
-    .btn:active { transform: scale(0.97); opacity: 0.85; }
-
+    /* ── Toggle button ── */
     #cam-toggle {
-      display: block;
-      width: min(100%, 380px);
-      margin: 0 auto 1rem;
-      padding: 0.7rem;
-      background: transparent;
-      color: var(--accent);
-      border: 1.5px solid var(--accent);
-      border-radius: var(--radius);
-      font-family: var(--font-body);
-      font-size: 0.88rem;
-      font-weight: 500;
-      cursor: pointer;
+      display: block; width: min(100%, 380px); margin: 0 auto 1rem;
+      padding: 0.7rem; background: transparent;
+      color: var(--accent); border: 1.5px solid var(--accent);
+      border-radius: var(--radius); font-family: var(--font-body);
+      font-size: 0.88rem; font-weight: 500; cursor: pointer;
       transition: background 0.2s;
     }
     #cam-toggle:hover { background: color-mix(in srgb, var(--accent) 8%, transparent); }
+
+    /* ── Divider ── */
+    .divider {
+      display: flex; align-items: center; gap: 0.75rem;
+      width: min(100%, 380px); margin: 0.75rem auto;
+      color: var(--muted); font-size: 0.78rem;
+    }
+    .divider::before, .divider::after {
+      content: ''; flex: 1; height: 1px; background: var(--border);
+    }
+
+    /* ── Manual form ── */
+    .manual-form {
+      width: min(100%, 380px); margin: 0 auto 2.5rem; display: flex; gap: 0.5rem;
+    }
+    .manual-form input {
+      flex: 1; padding: 0.7rem 1rem;
+      border: 1.5px solid var(--border); border-radius: var(--radius);
+      font-family: var(--font-body); font-size: 0.9rem;
+      background: var(--surface); color: var(--ink);
+      transition: border-color 0.2s; outline: none;
+    }
+    .manual-form input:focus { border-color: var(--accent); }
+    .manual-form input::placeholder { color: var(--muted); }
+    .btn {
+      padding: 0.7rem 1.2rem; background: var(--accent); color: #fff;
+      border: none; border-radius: var(--radius); font-family: var(--font-body);
+      font-size: 0.88rem; font-weight: 600; cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+    .btn:active { transform: scale(0.97); opacity: 0.85; }
   </style>
 </head>
 <body>
@@ -182,7 +146,8 @@
     <div class="divider">atau</div>
 
     <form class="manual-form" onsubmit="goToCard(event)">
-      <input type="text" id="manual-id" placeholder="Masukkan Student ID…" autocomplete="off" inputmode="numeric" />
+      <input type="text" id="manual-id" placeholder="Masukkan Student ID…"
+             autocomplete="off" inputmode="numeric" />
       <button class="btn" type="submit">Buka</button>
     </form>
   </main>
@@ -194,7 +159,6 @@
     let scanning = false;
 
     function onScanSuccess(decodedText) {
-      // support raw student_id or full URL with ?id=
       let id = decodedText.trim();
       try {
         const u = new URL(decodedText);
@@ -207,9 +171,9 @@
     }
 
     function startScanner() {
-      scanner = new Html5Qrcode("reader");
+      scanner = new Html5Qrcode('reader');
       scanner.start(
-        { facingMode: "environment" },
+        { facingMode: 'environment' },
         { fps: 10, qrbox: { width: 220, height: 220 } },
         onScanSuccess,
         () => {}
@@ -217,11 +181,10 @@
         scanning = true;
         document.getElementById('cam-label').textContent = 'Kamera aktif — arahkan ke QR code';
         document.getElementById('cam-toggle').textContent = '⏹ Hentikan Kamera';
-      }).catch(err => {
+      }).catch(() => {
         document.getElementById('cam-label').textContent = 'Kamera tidak tersedia — gunakan input manual';
         document.getElementById('scanner-wrap').style.display = 'none';
         document.getElementById('cam-toggle').style.display = 'none';
-        console.warn(err);
       });
     }
 
