@@ -117,6 +117,77 @@
 
     .card-body { padding: 1.4rem; }
 
+    /* ── Scanner ── */
+    .scanner-toggle {
+      width: 100%;
+      display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+      padding: 0.65rem 1rem;
+      background: var(--accent-light);
+      color: var(--accent);
+      border: 1.5px solid color-mix(in srgb, var(--accent) 28%, transparent);
+      border-radius: var(--radius);
+      font-family: var(--font-body);
+      font-size: 0.86rem; font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+      margin-bottom: 0.85rem;
+    }
+    .scanner-toggle:hover {
+      background: color-mix(in srgb, var(--accent) 18%, transparent);
+    }
+    .scanner-toggle.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .scanner-wrap {
+      display: none;
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: #000;
+      position: relative;
+      margin-bottom: 0.85rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+    }
+    .scanner-wrap.open { display: block; }
+    .scanner-wrap::after {
+      content: '';
+      position: absolute; inset: 0;
+      border: 3px solid var(--accent);
+      border-radius: var(--radius);
+      pointer-events: none;
+      animation: pulse-border 2s ease-in-out infinite;
+    }
+    @keyframes pulse-border { 0%,100%{opacity:.5} 50%{opacity:1} }
+
+    #reader { width: 100%; }
+    /* Hide html5-qrcode built-in UI clutter */
+    #reader img, #reader select, #reader button:not(.html5-qrcode-button-others) {
+      display: none !important;
+    }
+
+    .scanner-status {
+      display: flex; align-items: center; justify-content: center;
+      gap: 0.5rem; font-size: 0.78rem; color: var(--muted);
+      margin-bottom: 0.75rem;
+    }
+    .scanner-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--accent); flex-shrink: 0;
+    }
+    .scanner-dot.active { animation: blink 1.4s ease-in-out infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
+
+    /* ── Divider with text ── */
+    .or-divider {
+      display: flex; align-items: center; gap: 0.6rem;
+      color: var(--muted); font-size: 0.75rem; margin-bottom: 0.85rem;
+    }
+    .or-divider::before, .or-divider::after {
+      content: ''; flex: 1; height: 1px; background: var(--border);
+    }
+
     /* ── Lookup row ── */
     .lookup-row {
       display: flex; gap: 0.5rem; margin-bottom: 1rem;
@@ -384,9 +455,31 @@
         </div>
       </div>
       <div class="card-body">
+
+        <!-- Scanner toggle -->
+        <button class="scanner-toggle" id="btn-scan-toggle" onclick="toggleScanner()">
+          <span id="scan-icon">📷</span>
+          <span id="scan-label">Aktifkan Scanner QR</span>
+        </button>
+
+        <!-- Camera viewport -->
+        <div class="scanner-wrap" id="scanner-wrap">
+          <div id="reader"></div>
+        </div>
+
+        <!-- Status kamera -->
+        <div class="scanner-status" id="scanner-status" style="display:none">
+          <div class="scanner-dot active" id="scanner-dot"></div>
+          <span id="scanner-status-text">Arahkan kamera ke QR code kartu siswa…</span>
+        </div>
+
+        <!-- Divider -->
+        <div class="or-divider" id="or-divider" style="display:none">atau input manual</div>
+
+        <!-- Manual input row -->
         <div class="lookup-row">
           <input class="input" type="text" id="lookup-id"
-                 placeholder="Contoh: 10001"
+                 placeholder="Masukkan Student ID…"
                  inputmode="numeric"
                  autocomplete="off" />
           <button class="btn-primary" id="btn-lookup" onclick="lookupStudent()" style="width:auto;padding:0.65rem 1.1rem;flex-shrink:0">
@@ -466,11 +559,88 @@
 
   </main>
 
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
   <script>
-    // ── CONFIG ──────────────────────────────────────────────────────────────
+    // ── SCANNER ─────────────────────────────────────────────────────────────
+    let scanner    = null;
+    let scanActive = false;
+
+    function toggleScanner() {
+      if (scanActive) stopScanner();
+      else            startScanner();
+    }
+
+    function startScanner() {
+      const toggleBtn = el('btn-scan-toggle');
+      toggleBtn.classList.add('active');
+      el('scan-icon').textContent  = '⏹';
+      el('scan-label').textContent = 'Hentikan Scanner';
+      el('scanner-wrap').classList.add('open');
+      el('scanner-status').style.display = 'flex';
+      el('or-divider').style.display     = 'flex';
+      el('scanner-dot').classList.add('active');
+      el('scanner-status-text').textContent = 'Memuat kamera…';
+
+      scanner = new Html5Qrcode('reader');
+      scanner.start(
+        { facingMode: 'environment' },
+        { fps: 12, qrbox: { width: 220, height: 220 } },
+        onScanSuccess,
+        () => {}  // silent error handler (mis-read frames)
+      ).then(() => {
+        scanActive = true;
+        el('scanner-status-text').textContent = 'Arahkan kamera ke QR code kartu siswa…';
+      }).catch(() => {
+        // Kamera tidak tersedia
+        el('scanner-wrap').classList.remove('open');
+        el('scanner-status-text').textContent = 'Kamera tidak tersedia — gunakan input manual.';
+        el('scanner-dot').classList.remove('active');
+        el('scan-icon').textContent  = '📷';
+        el('scan-label').textContent = 'Aktifkan Scanner QR';
+        toggleBtn.classList.remove('active');
+      });
+    }
+
+    function stopScanner(cb) {
+      if (scanner && scanActive) {
+        scanner.stop().then(() => {
+          scanActive = false;
+          el('scanner-wrap').classList.remove('open');
+          el('scanner-status').style.display = 'none';
+          el('or-divider').style.display     = 'none';
+          el('scanner-dot').classList.remove('active');
+          el('btn-scan-toggle').classList.remove('active');
+          el('scan-icon').textContent  = '📷';
+          el('scan-label').textContent = 'Aktifkan Scanner QR';
+          cb && cb();
+        }).catch(() => { cb && cb(); });
+      } else {
+        cb && cb();
+      }
+    }
+
+    function onScanSuccess(decodedText) {
+      // Bisa berupa ID saja atau URL penuh (card.html?id=xxxx)
+      let id = decodedText.trim();
+      try {
+        const u = new URL(decodedText);
+        id = u.searchParams.get('id') || id;
+      } catch(_) {}
+
+      navigator.vibrate && navigator.vibrate([60, 40, 60]);
+
+      // Isi input dan trigger lookup — matikan kamera dulu
+      stopScanner(() => {
+        el('lookup-id').value = id;
+        lookupStudent();
+      });
+    }
+    // ────────────────────────────────────────────────────────────────────────
+
+
     // Endpoint Apps Script yang sama digunakan untuk GET (cari siswa)
     // dan POST (simpan nilai)
-    const ENDPOINT = 'https://script.google.com/macros/s/AKfycbw1PAom_CJh-UXofJ_pK5zDxwjffxl9Epqdmvym-MsJoxsGKnz6vhhwy3aBV2r-ScLDEQ/exec';
+    const ENDPOINT = 'https://script.google.com/macros/s/AKfycbza_7KWD66iJZGIh6xBuzRaphKHDyMaZZ3Evo_F6fTgF8N13rjRyCGfKCuFFi4lUhW5cA/exec';
     // ────────────────────────────────────────────────────────────────────────
 
     const KOMPETENSI_FIELDS = [
