@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Entry Nilai — Kartu Siswa</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --accent:       #1a6b4a;
+      --accent-dark:  #124d35;
+      --accent-light: color-mix(in srgb, #1a6b4a 12%, transparent);
+      --ink:          #1a1f2e;
+      --muted:        #6b7280;
+      --bg:           #f5f6f8;
+      --surface:      #ffffff;
+      --border:       #e5e7eb;
+      --danger:       #dc2626;
+      --success:      #16a34a;
+      --font-display: 'Playfair Display', Georgia, serif;
+      --font-body:    'DM Sans', system-ui, sans-serif;
+      --radius:       10px;
+      --radius-lg:    18px;
+      --shadow-card:  0 4px 24px rgba(0,0,0,0.09), 0 1px 4px rgba(0,0,0,0.05);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+
+    body {
+      font-family: var(--font-body);
+      font-size: 15px;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100dvh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 520px;
+      margin: 0 auto;
+      padding: 0 1rem 3rem;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      padding: 2.5rem 0 1.5rem;
+      text-align: center;
+    }
+    .hero-badge {
+      display: inline-block;
+      font-size: 0.68rem; font-weight: 600;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--accent);
+      background: var(--accent-light);
+      border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+      border-radius: 100px;
+      padding: 0.3rem 0.9rem;
+      margin-bottom: 0.85rem;
+    }
+    .hero h1 {
+      font-family: var(--font-display);
+      font-size: clamp(1.7rem, 5vw, 2.4rem);
+      line-height: 1.2;
+      color: var(--ink);
+      margin-bottom: 0.45rem;
+    }
+    .hero p {
+      color: var(--muted);
+      font-size: 0.88rem;
+      max-width: 340px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
+      margin-bottom: 1rem;
+      animation: fadeUp 0.4s ease both;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .card-header {
+      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+      padding: 1.1rem 1.4rem;
+      display: flex; align-items: center; gap: 0.65rem;
+      position: relative; overflow: hidden;
+    }
+    .card-header::before {
+      content: '';
+      position: absolute; width: 120px; height: 120px;
+      border-radius: 50%; background: rgba(255,255,255,0.07);
+      right: -20px; top: -40px;
+    }
+    .card-header-icon {
+      width: 34px; height: 34px; border-radius: 8px;
+      background: rgba(255,255,255,0.18);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem; flex-shrink: 0;
+    }
+    .card-header h2 {
+      font-family: var(--font-display);
+      font-size: 1rem; color: #fff; font-weight: 600; margin: 0;
+    }
+    .card-header p {
+      font-size: 0.73rem; color: rgba(255,255,255,0.7); margin: 0.05rem 0 0;
+    }
+
+    .card-body { padding: 1.4rem; }
+
+    /* ── Lookup row ── */
+    .lookup-row {
+      display: flex; gap: 0.5rem; margin-bottom: 1rem;
+    }
+    .lookup-row input {
+      flex: 1;
+    }
+
+    /* ── Student preview ── */
+    .student-preview {
+      display: none;
+      align-items: center;
+      gap: 0.85rem;
+      background: var(--bg);
+      border-radius: var(--radius);
+      padding: 0.85rem 1rem;
+      margin-bottom: 1.25rem;
+      border: 1.5px solid color-mix(in srgb, var(--accent) 30%, transparent);
+      animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+    .student-preview.visible { display: flex; }
+
+    .preview-avatar {
+      width: 46px; height: 46px;
+      border-radius: 8px;
+      object-fit: cover;
+      background: var(--border);
+      flex-shrink: 0;
+    }
+    .preview-info { min-width: 0; }
+    .preview-name {
+      font-family: var(--font-display);
+      font-size: 1rem; color: var(--ink);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .preview-sub { font-size: 0.75rem; color: var(--muted); margin-top: 0.1rem; }
+    .preview-badge {
+      margin-left: auto; flex-shrink: 0;
+      font-size: 0.65rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--accent);
+      background: var(--accent-light);
+      border-radius: 100px; padding: 0.2rem 0.7rem;
+    }
+
+    /* ── Form fields ── */
+    .form-group { margin-bottom: 1.1rem; }
+    .form-label {
+      display: block;
+      font-size: 0.78rem; font-weight: 600;
+      color: var(--muted); margin-bottom: 0.4rem;
+      text-transform: uppercase; letter-spacing: 0.1em;
+    }
+
+    .input, select.input {
+      width: 100%;
+      padding: 0.65rem 0.9rem;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      font-family: var(--font-body);
+      font-size: 0.9rem;
+      background: var(--surface);
+      color: var(--ink);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      appearance: none;
+    }
+    .input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent); }
+    .input::placeholder { color: var(--muted); }
+    .input.error { border-color: var(--danger); }
+
+    /* ── Slider row ── */
+    .slider-group { margin-bottom: 1.3rem; }
+    .slider-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 0.5rem;
+    }
+    .slider-label {
+      font-size: 0.82rem; font-weight: 500; color: var(--ink);
+    }
+    .slider-badge {
+      font-size: 0.8rem; font-weight: 700;
+      color: var(--accent);
+      background: var(--accent-light);
+      border-radius: 6px;
+      padding: 0.15rem 0.55rem;
+      font-feature-settings: "tnum";
+      min-width: 36px; text-align: center;
+      transition: background 0.2s;
+    }
+
+    /* Custom range slider */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%; height: 6px;
+      border-radius: 100px;
+      background: var(--border);
+      outline: none;
+      cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-runnable-track {
+      height: 6px; border-radius: 100px;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: 3px solid var(--surface);
+      box-shadow: 0 1px 6px rgba(0,0,0,0.2);
+      margin-top: -7px;
+      cursor: pointer;
+      transition: transform 0.15s;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+    input[type="range"]::-moz-range-thumb {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: 3px solid var(--surface);
+      box-shadow: 0 1px 6px rgba(0,0,0,0.2);
+      cursor: pointer;
+    }
+    .slider-track-wrap { position: relative; }
+    .slider-fill {
+      position: absolute;
+      top: 0; left: 0;
+      height: 6px; border-radius: 100px;
+      background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 60%, #4ade80));
+      pointer-events: none;
+      transition: width 0.1s;
+    }
+
+    /* ── Divider ── */
+    .divider-line {
+      height: 1px; background: var(--border); margin: 1.25rem 0;
+    }
+
+    /* ── Btn ── */
+    .btn-primary {
+      width: 100%;
+      padding: 0.8rem;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      font-family: var(--font-body);
+      font-size: 0.92rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+      display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+    }
+    .btn-primary:hover { opacity: 0.9; }
+    .btn-primary:active { transform: scale(0.98); }
+    .btn-primary:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+
+    .btn-secondary {
+      width: 100%;
+      padding: 0.7rem;
+      background: transparent;
+      color: var(--accent);
+      border: 1.5px solid var(--accent);
+      border-radius: var(--radius);
+      font-family: var(--font-body);
+      font-size: 0.88rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-secondary:hover { background: var(--accent-light); }
+
+    /* ── Alert ── */
+    .alert {
+      display: none;
+      padding: 0.85rem 1rem;
+      border-radius: var(--radius);
+      font-size: 0.85rem;
+      line-height: 1.5;
+      margin-bottom: 1rem;
+      animation: fadeIn 0.3s ease;
+    }
+    .alert.success {
+      background: color-mix(in srgb, var(--success) 10%, transparent);
+      border: 1.5px solid color-mix(in srgb, var(--success) 30%, transparent);
+      color: var(--success);
+    }
+    .alert.error {
+      background: color-mix(in srgb, var(--danger) 10%, transparent);
+      border: 1.5px solid color-mix(in srgb, var(--danger) 30%, transparent);
+      color: var(--danger);
+    }
+    .alert.visible { display: block; }
+
+    /* ── Spinner inside button ── */
+    .btn-spinner {
+      display: none;
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Nav top ── */
+    .top-nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1rem 0 0;
+    }
+    .top-nav a {
+      font-size: 0.82rem; color: var(--muted);
+      text-decoration: none; display: flex; align-items: center; gap: 0.3rem;
+      transition: color 0.2s;
+    }
+    .top-nav a:hover { color: var(--accent); }
+    .top-nav span {
+      font-size: 0.72rem; color: var(--muted);
+      font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em;
+    }
+
+    /* ── Recent submissions ── */
+    .recent-list { display: flex; flex-direction: column; gap: 0.5rem; }
+    .recent-item {
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--bg); border-radius: var(--radius);
+      padding: 0.65rem 0.9rem;
+      font-size: 0.8rem;
+    }
+    .recent-name { font-weight: 600; color: var(--ink); }
+    .recent-meta { font-size: 0.72rem; color: var(--muted); margin-top: 0.1rem; }
+    .recent-time { font-size: 0.72rem; color: var(--muted); flex-shrink: 0; margin-left: 0.5rem; }
+
+    .empty-recent {
+      text-align: center; color: var(--muted);
+      font-size: 0.83rem; padding: 1rem 0;
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+
+    <div class="top-nav">
+      <a href="index.html">← Scanner</a>
+      <span>Entry Nilai</span>
+    </div>
+
+    <div class="hero">
+      <span class="hero-badge">Instruktur Panel</span>
+      <h1>Entry Nilai<br/>Kompetensi</h1>
+      <p>Cari siswa berdasarkan ID, lalu isi nilai masing-masing kompetensi.</p>
+    </div>
+
+    <!-- Alert -->
+    <div class="alert" id="alert"></div>
+
+    <!-- STEP 1: Lookup siswa -->
+    <div class="card" style="animation-delay:0.05s">
+      <div class="card-header">
+        <div class="card-header-icon">🔍</div>
+        <div>
+          <h2>Cari Siswa</h2>
+          <p>Masukkan Student ID untuk mulai</p>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="lookup-row">
+          <input class="input" type="text" id="lookup-id"
+                 placeholder="Contoh: 10001"
+                 inputmode="numeric"
+                 autocomplete="off" />
+          <button class="btn-primary" id="btn-lookup" onclick="lookupStudent()" style="width:auto;padding:0.65rem 1.1rem;flex-shrink:0">
+            Cari
+          </button>
+        </div>
+
+        <!-- Preview siswa -->
+        <div class="student-preview" id="student-preview">
+          <img class="preview-avatar" id="preview-photo" src="" alt="Foto" />
+          <div class="preview-info">
+            <div class="preview-name" id="preview-name">—</div>
+            <div class="preview-sub">NIS: <span id="preview-nis">—</span></div>
+          </div>
+          <span class="preview-badge" id="preview-kelas">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2: Form nilai -->
+    <div class="card" id="score-card" style="display:none;animation-delay:0.1s">
+      <div class="card-header">
+        <div class="card-header-icon">📝</div>
+        <div>
+          <h2>Isi Nilai</h2>
+          <p>Geser slider atau ketik angka 0–100</p>
+        </div>
+      </div>
+      <div class="card-body">
+
+        <!-- Instruktur -->
+        <div class="form-group">
+          <label class="form-label" for="instruktur">Nama Instruktur</label>
+          <input class="input" type="text" id="instruktur"
+                 placeholder="Masukkan nama instruktur…"
+                 autocomplete="name" />
+        </div>
+
+        <div class="divider-line"></div>
+
+        <!-- Kompetensi sliders -->
+        <div id="sliders-wrap"></div>
+
+        <!-- Catatan -->
+        <div class="form-group" style="margin-top:0.5rem">
+          <label class="form-label" for="catatan">Catatan (opsional)</label>
+          <textarea class="input" id="catatan" rows="3"
+                    placeholder="Tambahkan catatan penilaian jika diperlukan…"
+                    style="resize:vertical;line-height:1.5"></textarea>
+        </div>
+
+        <div class="divider-line"></div>
+
+        <button class="btn-primary" id="btn-submit" onclick="submitScore()">
+          <span id="btn-label">Simpan Penilaian</span>
+          <div class="btn-spinner" id="btn-spinner"></div>
+        </button>
+
+      </div>
+    </div>
+
+    <!-- Recent submissions -->
+    <div class="card" style="animation-delay:0.15s">
+      <div class="card-header">
+        <div class="card-header-icon">📋</div>
+        <div>
+          <h2>Riwayat Sesi Ini</h2>
+          <p>Penilaian yang sudah diinput hari ini</p>
+        </div>
+      </div>
+      <div class="card-body" style="padding-top:1rem">
+        <div class="recent-list" id="recent-list">
+          <div class="empty-recent">Belum ada penilaian dalam sesi ini.</div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    // ── CONFIG ──────────────────────────────────────────────────────────────
+    // Endpoint Apps Script yang sama digunakan untuk GET (cari siswa)
+    // dan POST (simpan nilai)
+    const ENDPOINT = 'https://script.google.com/macros/s/AKfycbza_7KWD66iJZGIh6xBuzRaphKHDyMaZZ3Evo_F6fTgF8N13rjRyCGfKCuFFi4lUhW5cA/exec';
+    // ────────────────────────────────────────────────────────────────────────
+
+    const KOMPETENSI_FIELDS = [
+      { key: 'kompetensi_kedisiplinan', label: 'Kedisiplinan',  icon: '⏰' },
+      { key: 'kompetensi_kepemimpinan', label: 'Kepemimpinan',  icon: '🎯' },
+      { key: 'kompetensi_kerajinan',    label: 'Kerajinan',     icon: '✏️'  },
+      { key: 'kompetensi_publikasi',    label: 'Publikasi',      icon: '📢' },
+    ];
+
+    const DEFAULT_PHOTO = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='46' height='46' viewBox='0 0 46 46'%3E%3Crect width='46' height='46' fill='%23e5e7eb' rx='8'/%3E%3Ccircle cx='23' cy='17' r='8' fill='%239ca3af'/%3E%3Cellipse cx='23' cy='40' rx='13' ry='10' fill='%239ca3af'/%3E%3C/svg%3E";
+
+    let currentStudent = null;
+    let sessionHistory = [];
+
+    // ── DOM helpers ──
+    function el(id)   { return document.getElementById(id); }
+    function show(id) { el(id).style.display = 'block'; }
+    function hide(id) { el(id).style.display = 'none'; }
+
+    function showAlert(type, msg) {
+      const a = el('alert');
+      a.className = `alert ${type} visible`;
+      a.textContent = msg;
+      setTimeout(() => { a.className = 'alert'; }, 6000);
+    }
+
+    // ── Build sliders ──
+    function buildSliders() {
+      const wrap = el('sliders-wrap');
+      wrap.innerHTML = '';
+      KOMPETENSI_FIELDS.forEach(({ key, label, icon }) => {
+        const div = document.createElement('div');
+        div.className = 'slider-group';
+        div.innerHTML = `
+          <div class="slider-header">
+            <span class="slider-label">${icon} ${label}</span>
+            <span class="slider-badge" id="badge-${key}">70</span>
+          </div>
+          <div class="slider-track-wrap">
+            <div class="slider-fill" id="fill-${key}" style="width:70%"></div>
+            <input type="range" id="range-${key}"
+                   min="0" max="100" value="70"
+                   oninput="updateSlider('${key}', this.value)"
+                   style="position:relative;z-index:1" />
+          </div>
+        `;
+        wrap.appendChild(div);
+      });
+    }
+
+    function updateSlider(key, val) {
+      el(`badge-${key}`).textContent = val;
+      el(`fill-${key}`).style.width  = val + '%';
+    }
+
+    // ── Lookup student ──
+    async function lookupStudent() {
+      const id = el('lookup-id').value.trim();
+      if (!id) { el('lookup-id').focus(); return; }
+
+      const btn = el('btn-lookup');
+      btn.disabled = true;
+      btn.textContent = '…';
+
+      el('student-preview').classList.remove('visible');
+      hide('score-card');
+      currentStudent = null;
+
+      try {
+        const res = await fetch(`${ENDPOINT}?id=${encodeURIComponent(id)}`, { redirect: 'follow' });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json = await res.json();
+
+        if (!json.success) {
+          showAlert('error', `Siswa dengan ID "${id}" tidak ditemukan di sistem.`);
+          return;
+        }
+
+        currentStudent = json.data;
+
+        // Fill preview
+        const photo = el('preview-photo');
+        photo.src = (currentStudent.foto_url && currentStudent.foto_url.trim())
+                    ? currentStudent.foto_url.trim()
+                    : DEFAULT_PHOTO;
+        photo.onerror = () => { photo.src = DEFAULT_PHOTO; };
+
+        el('preview-name').textContent  = currentStudent.nama       || '—';
+        el('preview-nis').textContent   = currentStudent.nomor_induk || '—';
+        el('preview-kelas').textContent = currentStudent.kelas       || '—';
+        el('student-preview').classList.add('visible');
+
+        // Show score form
+        buildSliders();
+        show('score-card');
+        el('score-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      } catch(err) {
+        showAlert('error', 'Gagal terhubung ke server. Cek koneksi internet. Detail: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Cari';
+      }
+    }
+
+    // ── Submit score ──
+    async function submitScore() {
+      if (!currentStudent) {
+        showAlert('error', 'Cari siswa terlebih dahulu.');
+        return;
+      }
+
+      const instruktur = el('instruktur').value.trim();
+      if (!instruktur) {
+        el('instruktur').classList.add('error');
+        el('instruktur').focus();
+        showAlert('error', 'Nama instruktur wajib diisi.');
+        return;
+      }
+      el('instruktur').classList.remove('error');
+
+      // Collect values
+      const payload = {
+        action:     'saveScore',
+        student_id: currentStudent.student_id,
+        instruktur: instruktur,
+        catatan:    el('catatan').value.trim(),
+        timestamp:  new Date().toISOString(),
+      };
+      KOMPETENSI_FIELDS.forEach(({ key }) => {
+        payload[key] = Number(el(`range-${key}`).value);
+      });
+
+      // UI: loading
+      const btnLabel   = el('btn-label');
+      const btnSpinner = el('btn-spinner');
+      const btnSubmit  = el('btn-submit');
+      btnSubmit.disabled = true;
+      btnLabel.textContent = 'Menyimpan…';
+      btnSpinner.style.display = 'block';
+
+      try {
+        // Apps Script doPost via form-urlencoded workaround
+        // (Apps Script tidak mendukung CORS preflight pada JSON body,
+        //  sehingga kita kirim sebagai application/x-www-form-urlencoded
+        //  agar browser tidak mengirim preflight OPTIONS)
+        const formBody = Object.entries(payload)
+          .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+          .join('&');
+
+        const res = await fetch(ENDPOINT, {
+          method: 'POST',
+          redirect: 'follow',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: formBody,
+        });
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json = await res.json();
+
+        if (!json.success) {
+          throw new Error(json.error || 'Gagal menyimpan data');
+        }
+
+        // Success!
+        showAlert('success', `✓ Nilai ${currentStudent.nama} berhasil disimpan!`);
+        addToHistory(currentStudent, payload);
+        resetForm();
+
+      } catch(err) {
+        showAlert('error', 'Gagal menyimpan. Coba lagi. Detail: ' + err.message);
+      } finally {
+        btnSubmit.disabled = false;
+        btnLabel.textContent = 'Simpan Penilaian';
+        btnSpinner.style.display = 'none';
+      }
+    }
+
+    // ── Reset form ──
+    function resetForm() {
+      el('lookup-id').value = '';
+      el('catatan').value   = '';
+      el('student-preview').classList.remove('visible');
+      hide('score-card');
+      currentStudent = null;
+      el('lookup-id').focus();
+    }
+
+    // ── Session history ──
+    function addToHistory(student, payload) {
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+      sessionHistory.unshift({ student, payload, time: timeStr });
+      renderHistory();
+    }
+
+    function renderHistory() {
+      const list = el('recent-list');
+      if (!sessionHistory.length) {
+        list.innerHTML = '<div class="empty-recent">Belum ada penilaian dalam sesi ini.</div>';
+        return;
+      }
+      list.innerHTML = sessionHistory.map(({ student, payload, time }) => {
+        const vals = KOMPETENSI_FIELDS.map(f => payload[f.key]).join(' · ');
+        return `
+          <div class="recent-item">
+            <div>
+              <div class="recent-name">${student.nama || student.student_id}</div>
+              <div class="recent-meta">${student.kelas || '—'} &nbsp;|&nbsp; ${vals}</div>
+            </div>
+            <div class="recent-time">${time}</div>
+          </div>`;
+      }).join('');
+    }
+
+    // ── Enter key on lookup ──
+    el('lookup-id').addEventListener('keydown', e => {
+      if (e.key === 'Enter') lookupStudent();
+    });
+
+    // Pre-fill from URL param if any (?id=10001)
+    window.addEventListener('DOMContentLoaded', () => {
+      const preId = new URLSearchParams(location.search).get('id');
+      if (preId) {
+        el('lookup-id').value = preId;
+        lookupStudent();
+      }
+    });
+  </script>
+</body>
+</html>
