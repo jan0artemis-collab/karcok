@@ -1,7 +1,7 @@
 /**
  * main.js — Kartu Siswa
  */
-const ENDPOINT = 'https://script.google.com/macros/s/AKfycbza_7KWD66iJZGIh6xBuzRaphKHDyMaZZ3Evo_F6fTgF8N13rjRyCGfKCuFFi4lUhW5cA/exec';
+const ENDPOINT = 'https://script.google.com/macros/s/AKfycbw1PAom_CJh-UXofJ_pK5zDxwjffxl9Epqdmvym-MsJoxsGKnz6vhhwy3aBV2r-ScLDEQ/exec';
 
 const KOMPETENSIS = [
   { key: 'kompetensi_kedisiplinan',  label: 'Kedisiplinan'  },
